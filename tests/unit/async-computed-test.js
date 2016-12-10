@@ -3,6 +3,8 @@ import Ember from 'ember';
 import { asyncComputed, timeout } from 'ember-concurrency';
 import { module, test } from 'qunit';
 
+const defer = Ember.RSVP.defer;
+
 module('Unit: async computed');
 
 test(".value synchronously produces a value if possible", function(assert) {
@@ -81,4 +83,35 @@ test("async properties get passed async resolved yieldables", function(assert) {
     done();
   }, 20);
 });
+
+test("async properties depending on async properties", function(assert) {
+  assert.expect(2);
+
+  let aDefer, bDefer;
+  let klass = Ember.Object.extend({
+    a: asyncComputed(function * () {
+      aDefer = defer();
+      return aDefer.promise;
+    }),
+    b: asyncComputed(function * () {
+      bDefer = defer();
+      return bDefer.promise;
+    }),
+    c: asyncComputed('a', 'b', function * (a, b) {
+      return [a, b];
+    }),
+  });
+
+  let obj;
+  Ember.run(() => {
+    obj = klass.create();
+    assert.equal(obj.get('c.value'), null);
+  });
+  // TODO: test that these are both set to begin with, pending
+  // task-aware implementation of `all()`.
+  Ember.run(aDefer, 'resolve', 'A');
+  Ember.run(bDefer, 'resolve', 'B');
+  assert.deepEqual(obj.get('c.value'), ['A', 'B']);
+});
+
 

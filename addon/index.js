@@ -2,6 +2,7 @@ import Ember from 'ember';
 import { isGeneratorIterator } from './utils';
 import { TaskProperty } from './-task-property';
 import { didCancel } from './-task-instance';
+import { asyncComputed } from './-async-computed';
 import { TaskGroupProperty } from './-task-group';
 import EventedObservable from './-evented-observable';
 import { all, allSettled, hash, race } from './-yieldables';
@@ -104,6 +105,7 @@ export function events(obj, eventName) {
 export {
   all,
   allSettled,
+  asyncComputed,
   hash,
   race,
   didCancel

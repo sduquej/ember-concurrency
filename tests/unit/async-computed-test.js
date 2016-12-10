@@ -41,3 +41,21 @@ test("async properties get passed synchronously resolved values of their async p
   });
 });
 
+test("async properties get passed synchronously resolved yieldables", function(assert) {
+  assert.expect(2);
+
+  let klass = Ember.Object.extend({
+    a: null,
+    b: asyncComputed('a', function * (a) {
+      assert.equal(a, 999);
+      return a;
+    }),
+  });
+
+  Ember.run(() => {
+    assert.equal(klass.create({
+      a: Ember.RSVP.resolve(999)
+    }).get('b.value'), 999);
+  });
+});
+
